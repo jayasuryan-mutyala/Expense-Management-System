@@ -1,0 +1,21 @@
+# Core backend
+fastapi[standard]
+uvicorn
+pydantic
+python-dotenv
+requests
+
+# Frontend
+streamlit
+
+# Database
+mysql-connector-python
+
+# Data & visualization
+numpy
+pandas
+matplotlib
+seaborn
+
+# Testing
+pytest

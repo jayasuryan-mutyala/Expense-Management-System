@@ -1,6 +1,7 @@
 import streamlit as st 
 from datetime import datetime 
 import requests
+import os
 from add_update_ui import add_update_tab
 from analytics_ui import analytics_tab
 from analytics_months_ui import analytics_by_month_tab
@@ -8,7 +9,8 @@ from category_analytics_ui import category_analytics_tab
 
 # Note do not use streamlit url here 
 # USE FASTAPI
-API_URL = "http://localhost:8000"
+
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 st.title("Expense Tracking System")
 

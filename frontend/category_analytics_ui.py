@@ -1,8 +1,9 @@
 import streamlit as st 
 import pandas as pd 
 import requests 
+import os
 
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 def category_analytics_tab():
     st.subheader("Expense Breakdown by Category")

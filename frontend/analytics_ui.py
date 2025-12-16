@@ -2,9 +2,9 @@ import streamlit as st
 from datetime import datetime 
 import requests
 import pandas as pd 
+import os
 
-
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 
 def analytics_tab():
