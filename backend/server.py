@@ -4,6 +4,16 @@ from backend import db_helper
 from typing import List
 from pydantic import BaseModel,field_validator
 
+class CategoryAnalytics(BaseModel):
+    category: str
+    total: float 
+    percentage: float
+
+class AnalyticsResponse(BaseModel):
+    items: List[CategoryAnalytics]
+
+class MessageResponse(BaseModel):
+    message:str
 
 class Expense(BaseModel):
     # expense_date: date 
@@ -49,6 +59,15 @@ def server_error(message: str):
         }
     )
 
+def not_found_error(message:str):
+    raise HTTPException(
+        status_code=404,
+        detail={
+            "error":"NOT_FOUND",
+            "message":message
+        }
+    )
+
 # response model specifies the schema format
 # we will only get the necessary fields we specified in BaseClass
 @app.get("/expenses/{expense_date}",response_model=List[Expense])
@@ -60,7 +79,7 @@ def get_expenses(expense_date: date):
 
 # Take serious note of the Python typehints because it can define how we send inputs from postman 
 
-@app.post("/expenses/{expense_date}")
+@app.post("/expenses/{expense_date}",response_model=MessageResponse)
 def add_or_update_expense(expense_date: date,expenses: List[Expense]):
     try:
         db_helper.delete_expense(expense_date)
@@ -70,42 +89,43 @@ def add_or_update_expense(expense_date: date,expenses: List[Expense]):
                                     expense.amount,
                                     expense.category,
                                     expense.notes)
-        return {"message":"Expenses updated successfully"}
+        return MessageResponse(message="Expenses updated successfully")
     
     except Exception as e:
         server_error(str(e))
     
 
-@app.post("/analytics/")
+@app.post("/analytics/",response_model=AnalyticsResponse)
 def get_analytics(date_range: DateRange):
     data = db_helper.fetch_expense_summary(date_range.start_date,
                                     date_range.end_date)
-    
+        
     if data is None:
-        return server_error(message="Failed to retrieve expense summary from the data")
+        server_error(message="Failed to retrieve expense summary from the data")
     
     total = sum([row['total'] for row in data])
 
-    breakdown = {}
+    items = []
 
     for row in data:
         percentage = (row['total']/total)*100 if total != 0 else 0
-        breakdown[row['category']] = {
-            "total":row['total'],
-            "percentage":percentage
-        }
+        
+        items.append(
+            CategoryAnalytics(
+                category=row["category"],
+                total=row['total'],
+                percentage=percentage
+            )
+        )
 
-    return breakdown
+    return AnalyticsResponse(items=items)
 
 @app.get("/monthly_expense",response_model=List[MonthlyExpense])
 def get_month_wise_expenses():
     data = db_helper.fetch_total_monthly_expense()
 
     if not data:
-        raise HTTPException(
-            status_code=404,
-            detail={"error":"No monthly expense data found"}
-        )
+        not_found_error("No expenses found")
     
     return data 
 
@@ -114,8 +134,8 @@ def get_categories():
     data = db_helper.fetch_categories()
 
     if not data:
-        raise HTTPException(status_code=404,
-                            detail={"error":"No categories found"})
+        not_found_error("No categories found")
+
     return data
 
 
@@ -125,16 +145,15 @@ def get_category_wise_expenses(category: str):
     data = db_helper.fetch_expense_by_category(category)
 
     if not data:
-        raise HTTPException(status_code=404,
-                            detail=f"No expenses found for category: {category}")
+        not_found_error(f"No expenses found for category:{category}")
+    
     return data
 
 @app.get("/category_expense",response_model=List[CategoryExpense])
 def get_total_expense_by_categories():
     data = db_helper.fetch_total_expense_by_category()
     if not data:
-        raise HTTPException(status_code=404,
-                            details="Unable to fetch expenses by category")
+        not_found_error("Unable fetch expenses by category")
     return data
 
 

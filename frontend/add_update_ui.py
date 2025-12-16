@@ -6,83 +6,84 @@ API_URL = "http://localhost:8000"
 
 
 def add_update_tab():
-    selected_date = st.date_input("Enter Date",datetime(2024,8,1),
-                  label_visibility='collapsed')
-    
+    selected_date = st.date_input(
+        "Enter Date",
+        datetime(2024, 8, 1),
+        label_visibility="collapsed"
+    )
+
     date_key = selected_date.isoformat()
-    
+
     response = requests.get(f"{API_URL}/expenses/{selected_date}")
+    existing_expenses = response.json() if response.status_code == 200 else []
 
-    if response.status_code == 200:
-        existing_expenses = response.json()
-    else:
-        st.error("Failed to retrieve expenses")
-        existing_expenses = []
+    @st.cache_data
+    def fetch_categories():
+        r = requests.get(f"{API_URL}/categories/")
+        if r.status_code != 200:
+            return []
+        return [item["category"] for item in r.json()]
 
-    categories = requests.get("/categories")
-    
+    categories = fetch_categories()
+
+    if not categories:
+        st.warning("No categories available")
+        return
+
     with st.form(key=f"expense_form_{date_key}"):
-        col1,col2,col3 = st.columns(3)
-        
-        with col1:
-            st.subheader("Amount")
-        
-        with col2:
-            st.subheader("Category")
-        
-        with col3:
-            st.subheader("Notes")
-
         expenses = []
 
         for i in range(5):
             if i < len(existing_expenses):
-                amount = existing_expenses[i]['amount']
-                category = existing_expenses[i]['category']
-                notes = existing_expenses[i]['notes']
-
+                amount = existing_expenses[i]["amount"]
+                category = existing_expenses[i]["category"]
+                notes = existing_expenses[i]["notes"]
             else:
                 amount = 0.0
-                category = "Shopping"
+                category = categories[0]
                 notes = ""
 
-            col1,col2,col3 = st.columns(3)
+            category_index = categories.index(category) if category in categories else 0
+
+            col1, col2, col3 = st.columns(3)
 
             with col1:
-                amount_input = st.number_input(label="Amount",
-                                min_value=0.0,
-                                step=1.0,
-                                value=amount,
-                                key=f"{date_key}_amount_{i}",
-                                label_visibility='collapsed')
-            
+                amount_input = st.number_input(
+                    "Amount",
+                    min_value=0.0,
+                    value=amount,
+                    key=f"{date_key}_amount_{i}",
+                    label_visibility="collapsed"
+                )
+
             with col2:
-                category_input = st.selectbox(label="Category",
-                             options=categories,
-                             index=categories.index(category),
-                             key=f"{date_key}_category_{i}",
-                             label_visibility='collapsed')
-            
+                category_input = st.selectbox(
+                    "Category",
+                    categories,
+                    index=category_index,
+                    key=f"{date_key}_category_{i}",
+                    label_visibility="collapsed"
+                )
+
             with col3:
-                notes_input = st.text_input(label="Notes",
-                                            value=notes,
-                                            key=f"{date_key}_notes_{i}",
-                                            label_visibility='collapsed')
-            
+                notes_input = st.text_input(
+                    "Notes",
+                    value=notes,
+                    key=f"{date_key}_notes_{i}",
+                    label_visibility="collapsed"
+                )
+
             expenses.append({
-                "amount":amount_input,
-                "category":category_input,
-                "notes":notes_input
+                "amount": amount_input,
+                "category": category_input,
+                "notes": notes_input
             })
 
-        submit_button = st.form_submit_button("Save")
-        
-        if submit_button:
-            filtered_expenses = [expense for expense in expenses if expense['amount'] > 0]
-            
-            response = requests.post(f"{API_URL}/expenses/{selected_date}",json=filtered_expenses)
+        if st.form_submit_button("Save"):
+            payload = [e for e in expenses if e["amount"] > 0]
+            r = requests.post(f"{API_URL}/expenses/{selected_date}", json=payload)
 
-            if response.status_code == 200:
+            if r.status_code == 200:
                 st.success("Expense updated successfully")
             else:
-                st.error("Failed to update successfully")
+                st.error("Failed to update expenses")

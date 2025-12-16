@@ -23,18 +23,27 @@ def analytics_tab():
         }
 
         response = requests.post(f"{API_URL}/analytics/",json=payload)
-        response = response.json()
+        
+        if response.status_code != 200:
+            st.error("Failed to fetch data")
+            return
+        
+        items = response.json()['items']
 
-        data =  {
-            "Category":["Rent","Shopping"],
-            "Total":[12123,234],
-            "Percentage":[4,6]
-        }
+        df = pd.DataFrame(items)
 
-        df = pd.DataFrame(data)
+        if df.empty:
+            st.info("No analytics available")
+            return
 
-        df_sorted = df.sort_values(by='Percentage',ascending=False)
-        st.bar_chart(data=df_sorted.set_index("Category")["Percentage"],
+        df_sorted = df.sort_values(by='percentage',ascending=False)
+
+        st.bar_chart(data=df_sorted.set_index("category")["percentage"],
                      use_container_width=True)
 
-        st.table(df_sorted)
+        st.table(
+            df_sorted.style.format({
+                "total":"{:.2f}",
+                "percentage":"{:.2f}%",
+            })
+        )
