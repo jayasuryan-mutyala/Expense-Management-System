@@ -3,7 +3,9 @@
 This project is an expense management system that consists of a streamlit frontend and FastAPI backend server.
 
 
-## Project structure
+## Project Structure
+
+```text
 EXPENSE_MANAGER/
 │
 ├── backend/                  # FastAPI backend (API + database logic)
@@ -35,6 +37,7 @@ EXPENSE_MANAGER/
 ├── pyproject.toml            # Project metadata & dependencies
 ├── uv.lock                   # Locked dependency versions (uv)
 ├── main.py                   # Optional entry point / experiments
+└── README.md                 # Project documentation
 
 
 ## Setup Instructions
