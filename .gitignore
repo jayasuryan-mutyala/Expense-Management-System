@@ -1,0 +1,62 @@
+# ========================
+# Environment & Secrets
+# ========================
+.env
+.env.*
+.streamlit/secrets.toml
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.py[cod]
+*.pyd
+
+# ========================
+# Virtual Environments
+# ========================
+venv/
+.venv/
+env/
+exp_env/
+
+# ========================
+# Packaging
+# ========================
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ========================
+# Testing & Coverage
+# ========================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ========================
+# Jupyter
+# ========================
+.ipynb_checkpoints/
+
+# ========================
+# Logs & Temp
+# ========================
+*.log
+backend/server.log
+tmp/
+
+# ========================
+# IDEs / Editors
+# ========================
+.vscode/
+.idea/
+*.swp
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

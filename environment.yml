@@ -1,0 +1,19 @@
+name: exp_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - numpy
+  - pandas
+  - matplotlib
+  - seaborn
+  - pip
+  - pip:
+      - fastapi[standard]
+      - uvicorn
+      - streamlit
+      - mysql-connector-python
+      - pytest
+      - pydantic
+      - python-dotenv
+      - requests
